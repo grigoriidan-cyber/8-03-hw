@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Квиз — Мини‑викторина</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <h1>Квиз 🔥</h1>
+    <div id="quiz-card" class="card">
+      <div id="question" class="question">Вопрос</div>
+      <div id="answers" class="answers"></div>
+      <div class="controls">
+        <button id="prev" class="btn ghost">Назад</button>
+        <button id="next" class="btn">Далее</button>
+      </div>
+      <div id="progress" class="progress"></div>
+    </div>
+    <div id="result" class="result hidden"></div>
+    <footer>
+      <small>Статический сайт на Nginx. Build с Docker, CI — GitLab.</small>
+    </footer>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

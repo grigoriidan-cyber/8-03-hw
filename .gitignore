@@ -1,0 +1,3 @@
+.vagrant/
+gitlab/.vagrant/
+gitlab/ubuntu-bionic-18.04-cloudimg-console.log

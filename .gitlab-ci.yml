@@ -1,0 +1,28 @@
+default:
+  tags: ["docker"]                       # tag для раннера
+  variables:
+    DOCKER_HOST: "unix:///var/run/docker.sock"
+    DOCKER_DRIVER: "overlay2"
+    IMAGE: "${CI_PROJECT_PATH_SLUG}:${CI_COMMIT_SHORT_SHA}"
+
+stages: [ "test", "build" ]
+
+test:
+  stage: test
+  image: alpine:3.20
+  script:
+    - set -euo pipefail
+    - test -d site
+    - test -s site/index.html
+    - test -s site/style.css
+    - test -s site/app.js
+    - grep -qi "<title>" site/index.html
+    - echo "✅ basic checks passed"
+
+build:
+  stage: build
+  image: docker:27
+  script:
+    - docker version
+    - docker build --pull -t "$IMAGE" .
+    - docker images | head -n 5

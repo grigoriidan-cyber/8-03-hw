@@ -1,0 +1,24 @@
+* { box-sizing: border-box; }
+body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+  margin: 0; padding: 24px; background: #0f1115; color: #e7e9ee;
+}
+.app { max-width: 760px; margin: 0 auto; }
+h1 { margin: 0 0 16px; font-size: 28px; }
+.card { background: #141824; border: 1px solid #252b3a; border-radius: 16px; padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+.question { font-size: 20px; margin-bottom: 12px; }
+.answers { display: grid; gap: 10px; margin: 12px 0 16px; }
+.answer {
+  padding: 12px 14px; border: 1px solid #2b3042; border-radius: 12px; background: #181d2c; cursor: pointer;
+}
+.answer input { margin-right: 8px; }
+.controls { display: flex; gap: 10px; }
+.btn {
+  padding: 10px 14px; border-radius: 12px; border: 1px solid #2b3042; background: #2a6df1; color: #fff; cursor: pointer;
+}
+.btn.ghost { background: transparent; color: #cbd5e1; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.progress { margin-top: 10px; color: #9aa4b2; font-size: 14px; }
+.result { margin-top: 16px; padding: 18px; border-radius: 14px; background: #13251a; border: 1px solid #274c34; }
+.hidden { display: none; }
+footer { margin-top: 18px; color: #8b94a3; }

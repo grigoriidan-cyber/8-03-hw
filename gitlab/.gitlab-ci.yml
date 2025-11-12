@@ -1,0 +1,33 @@
+default:
+  tags: ["docker"]            # чтобы твой раннер точно взял джобы
+
+stages: [test, build]
+
+test:
+  stage: test
+  image: alpine:3.20
+  script:
+    - echo "ok ✅"
+
+build:
+  stage: build
+  image: docker:27
+  services:
+    - name: docker:27-dind
+      command: ["--tls=false"]      # без TLS, так проще для учебки
+  variables:
+    DOCKER_HOST: "tcp://docker:2375"
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_BUILDKIT: "1"
+    SITE_PORT: "2025"
+    IMAGE: "simple-site:${CI_COMMIT_SHORT_SHA}"
+  script:
+    - docker version             
+    - test -f Dockerfile           
+    - test -f site/index.html
+    - docker build -f gitlab/Dockerfile -t "$IMAGE" .
+    - docker rm -f web || true
+    - docker run -d --name web -p ${SITE_PORT}:80 "$IMAGE"
+    - sleep 2
+    - docker exec web wget -qO- http://127.0.0.1:80 | grep -q "It works"
+    
