@@ -1,12 +1,11 @@
 default:
   tags: ["docker"]                          # runner для джобов
-  variables:
-    # работаем с Docker-демоном хоста через unix-сокет
-    DOCKER_HOST: "unix:///var/run/docker.sock"
-    DOCKER_DRIVER: "overlay2"
-
+  
 # ===== ПЕРЕМЕННЫЕ =====
 variables:
+  # работаем с Docker-демоном хоста через unix-сокет
+  DOCKER_HOST: "unix:///var/run/docker.sock"
+  DOCKER_DRIVER: "overlay2"
   DEPLOY_BRANCH: "main"                     # из какой ветки деплоим
   APP_NAME: "${CI_PROJECT_PATH_SLUG}"       # имя контейнера
   APP_PORT: "80"                            # порт ВНУТРИ контейнера (nginx → 80)
