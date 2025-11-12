@@ -1,35 +1,36 @@
 default:
-  tags: ["docker"]                          # runner для джобов
-  
+  tags: ["docker"]  # runner для джобов
+
 # ===== ПЕРЕМЕННЫЕ =====
 variables:
   # работаем с Docker-демоном хоста через unix-сокет
   DOCKER_HOST: "unix:///var/run/docker.sock"
   DOCKER_DRIVER: "overlay2"
-  DEPLOY_BRANCH: "main"                     # из какой ветки деплоим
-  APP_NAME: "${CI_PROJECT_PATH_SLUG}"       # имя контейнера
-  APP_PORT: "80"                            # порт ВНУТРИ контейнера (nginx → 80)
-  HOST_PORT: "2025"                         # порт НА ХОСТЕ раннера
-  DOCKERFILE: "Dockerfile"                  # путь до Dockerfile
-  IMAGE_REPO: "${CI_PROJECT_PATH_SLUG}"     # локальный тег репо на хосте раннера
+
+  DEPLOY_BRANCH: "main"                # из какой ветки деплоим
+  APP_NAME: "${CI_PROJECT_PATH_SLUG}"  # имя контейнера
+  APP_PORT: "80"                       # порт ВНУТРИ контейнера (nginx → 80)
+  HOST_PORT: "2025"                    # порт НА ХОСТЕ раннера
+  DOCKERFILE: "Dockerfile"             # путь до Dockerfile
+  IMAGE_REPO: "${CI_PROJECT_PATH_SLUG}" # локальный тег репо на хосте раннера
   IMAGE_TAG: "${CI_COMMIT_SHORT_SHA}"
   IMAGE: "${IMAGE_REPO}:${IMAGE_TAG}"
 
-stages: [ "test", "build", "deploy" ]
+stages: ["test", "build", "deploy"]
 
 # ===== TEST =====
 test:
   stage: test
   image: alpine:3.20
   script:
-    - set -euo pipefail
     # базовые проверки под статик-сайт (папка site)
-    - test -d site
-    - test -s site/index.html
-    - test -s site/style.css
-    - test -s site/app.js
-    - grep -qi "<title>" site/index.html
-    - echo "✅ basic checks passed"
+    - "set -e"
+    - "test -d site"
+    - "test -s site/index.html"
+    - "test -s site/style.css"
+    - "test -s site/app.js"
+    - "grep -qi '<title>' site/index.html"
+    - "echo '✅ basic checks passed'"
 
 # ===== BUILD =====
 build:
@@ -37,10 +38,10 @@ build:
   image: docker:27
   needs: ["test"]
   script:
-    - docker version
-    - echo "🧱 building image: $IMAGE (Dockerfile=$DOCKERFILE)"
-    - docker build --pull -f "$DOCKERFILE" -t "$IMAGE" .
-    - docker images | head -n 5
+    - "docker version"
+    - "echo '🧱 building image: $IMAGE (Dockerfile=$DOCKERFILE)'"
+    - "docker build --pull -f \"$DOCKERFILE\" -t \"$IMAGE\" ."
+    - "docker images | head -n 5"
 
 # ===== DEPLOY =====
 deploy:
@@ -51,20 +52,20 @@ deploy:
   rules:
     - if: '$CI_COMMIT_BRANCH == $DEPLOY_BRANCH'
   script:
-    - echo "🧹 stopping old container (if any)"
-    - docker rm -f "$APP_NAME" 2>/dev/null || true # Грохаем старый контейнер
+    - "echo '🧹 stopping old container (if any)'"
+    - "docker rm -f \"$APP_NAME\" 2>/dev/null || true"  # Грохаем старый контейнер
 
-    - echo "run new container → $APP_NAME on host:$HOST_PORT -> app:$APP_PORT"  # Билдим новый
-    - |
-      docker run -d --name "$APP_NAME" \
-        -p "${HOST_PORT}:${APP_PORT}" \
-        --restart unless-stopped \
-        "$IMAGE"
+    # Билдим новый и запускаем
+    - "echo 'run new container → $APP_NAME on host:'\"$HOST_PORT\"' -> app:'\"$APP_PORT\""
+    - "docker run -d --name \"$APP_NAME\" -p \"${HOST_PORT}:${APP_PORT}\" --restart unless-stopped \"$IMAGE\""
 
-    - echo "🔎 ps:"
-    - docker ps --filter "name=${APP_NAME}"
+    - "echo '🔎 ps:'"
+    - "docker ps --filter name=${APP_NAME}"
 
-    # мини-проверка, что порт отвечают
-    - echo "🩺 healthcheck http://127.0.0.1:${HOST_PORT}"
-    - apk add --no-cache curl >/dev/null
-    - curl -sSfI "http://127.0.0.1:${HOST_PORT}" | head -n 1
+    # мини-проверка, что порт отвечает
+    - "echo '🩺 healthcheck http://127.0.0.1:${HOST_PORT}'"
+    - "apk add --no-cache curl >/dev/null"
+    - "curl -sSfI \"http://127.0.0.1:${HOST_PORT}\" | head -n 1"
+  environment:
+    name: production
+    url: "http://${RUNNER_HOST:-127.0.0.1}:${HOST_PORT}"
