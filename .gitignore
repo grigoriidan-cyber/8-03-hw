@@ -1,3 +1,23 @@
 .vagrant/
 gitlab/.vagrant/
 gitlab/ubuntu-bionic-18.04-cloudimg-console.log
+
+docker exec -it gitlab-runner gitlab-runner register \
+  --url "http://gitlab.localdomain/" \
+  --registration-token "<glrt-eE5_mSBMfBmfmt-rNL1k>" \
+  --executor "docker" \
+  --description "docker-runner" \
+  --tag-list "docker" \
+  --run-untagged="false" \
+  --locked="true" \
+  --docker-image "alpine:3.20"
+
+docker exec -it gitlab-runner gitlab-runner register \
+  --url "http://gitlab.localdomain:8090/" \
+  --registration-token "glrt-eE5_mSBMfBmfmt-rNL1k" \
+  --executor "docker" \
+  --description "locker-runner" \
+  --tag-list "locker" \
+  --run-untagged="false" \
+  --locked="true" \
+  --docker-image "alpine:3.20"
