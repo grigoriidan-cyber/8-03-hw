@@ -12,7 +12,7 @@ variables:
   APP_PORT: "80"                       # порт ВНУТРИ контейнера (nginx → 80)
   HOST_PORT: "2025"                    # порт НА ХОСТЕ раннера
   DOCKERFILE: "Dockerfile"             # путь до Dockerfile
-  IMAGE_REPO: "${CI_PROJECT_PATH_SLUG}" # локальный тег репо на хосте раннера
+  IMAGE_REPO: "${CI_PROJECT_PATH_SLUG}"# локальный тег репо на хосте раннера
   IMAGE_TAG: "${CI_COMMIT_SHORT_SHA}"
   IMAGE: "${IMAGE_REPO}:${IMAGE_TAG}"
 
@@ -30,7 +30,7 @@ test:
     - "test -s site/style.css"
     - "test -s site/app.js"
     - "grep -qi '<title>' site/index.html"
-    - "echo '✅ basic checks passed'"
+    - "echo '✅ Базовые проверки пройдены'"
 
 # ===== BUILD =====
 build:
@@ -38,11 +38,12 @@ build:
   image: docker:27
   needs: ["test"]
   script:
-    - "ls -l /var/run/docker.sock || true"
     - "docker version"
-    - "echo '🧱 building image: $IMAGE (Dockerfile=$DOCKERFILE)'"
+    - "echo '🧱 Собираем образ: '\"$IMAGE\"' (Dockerfile='\"$DOCKERFILE\"')"
     - "docker build --pull -f \"$DOCKERFILE\" -t \"$IMAGE\" ."
+    - "echo '📦 Топ образов:'"
     - "docker images --format '{{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.Size}}' | sed -n '1,5p'"
+
 # ===== DEPLOY =====
 deploy:
   stage: deploy
@@ -52,22 +53,23 @@ deploy:
   rules:
     - if: '$CI_COMMIT_BRANCH == $DEPLOY_BRANCH'
   script:
-    - "echo '🧹 stopping old container (if any)'"
+    - "echo '🧹 Останавливаем и удаляем старый контейнер (если есть)'"
     - "docker rm -f \"$APP_NAME\" 2>/dev/null || true"  # Грохаем старый контейнер
-    # если порт уже схвачен другим контейнером — тоже грохаем
+    - "echo '🧯 Проверяем, не занят ли порт '\"$HOST_PORT\"' другим контейнером'"
     - "CID_BY_PORT=$(docker ps -q -f publish=${HOST_PORT}) ; [ -n \"$CID_BY_PORT\" ] && docker rm -f \"$CID_BY_PORT\" || true"
 
-    # Билдим новый и запускаем
-    - "echo 'run new container → $APP_NAME on host:'\"$HOST_PORT\"' -> app:'\"$APP_PORT\""
+    - "echo '🚀 Запуск нового контейнера → '\"$APP_NAME\"' на хосте:'\"$HOST_PORT\"' → приложение:'\"$APP_PORT\""
     - "docker run -d --name \"$APP_NAME\" -p \"${HOST_PORT}:${APP_PORT}\" --restart unless-stopped \"$IMAGE\""
 
-    - "echo '🔎 ps:'"
+    - "echo '🔎 Список контейнеров:'"
     - "docker ps --filter name=${APP_NAME}"
 
-    # мини-проверка, что порт отвечает
-    - "echo '🩺 healthcheck http://127.0.0.1:${HOST_PORT}'"
-    - "apk add --no-cache curl >/dev/null"
-    - "curl -sSfI \"http://127.0.0.1:${HOST_PORT}\" | head -n 1"
+    # проверка доступности С ХОСТА (curl в сети хоста)
+    - "echo '🩺 Проверка доступности с хоста: http://127.0.0.1:${HOST_PORT}'"
+    - "docker run --rm --network host curlimages/curl -sSfI http://127.0.0.1:${HOST_PORT} | head -n 1"
+
+    - "echo '🔌 Проброшенные порты контейнера:'"
+    - "docker port \"$APP_NAME\" ${APP_PORT}/tcp || true"
   environment:
     name: production
     url: "http://${RUNNER_HOST:-127.0.0.1}:${HOST_PORT}"
