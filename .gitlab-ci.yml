@@ -54,6 +54,8 @@ deploy:
   script:
     - "echo '🧹 stopping old container (if any)'"
     - "docker rm -f \"$APP_NAME\" 2>/dev/null || true"  # Грохаем старый контейнер
+    # если порт уже схвачен другим контейнером — тоже грохаем
+    - "CID_BY_PORT=$(docker ps -q -f publish=${HOST_PORT}) ; [ -n \"$CID_BY_PORT\" ] && docker rm -f \"$CID_BY_PORT\" || true"
 
     # Билдим новый и запускаем
     - "echo 'run new container → $APP_NAME on host:'\"$HOST_PORT\"' -> app:'\"$APP_PORT\""
