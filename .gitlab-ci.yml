@@ -38,11 +38,11 @@ build:
   image: docker:27
   needs: ["test"]
   script:
+    - "ls -l /var/run/docker.sock || true"
     - "docker version"
     - "echo '🧱 building image: $IMAGE (Dockerfile=$DOCKERFILE)'"
     - "docker build --pull -f \"$DOCKERFILE\" -t \"$IMAGE\" ."
-    - "docker images | head -n 5"
-
+    - "docker images --format '{{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.Size}}' | sed -n '1,5p'"
 # ===== DEPLOY =====
 deploy:
   stage: deploy
